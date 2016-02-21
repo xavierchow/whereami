@@ -18,8 +18,8 @@ L.mapbox.accessToken = 'pk.eyJ1IjoieGF2aWVyY2hvdyIsImEiOiJjaWtud2s2bWowdWtqdTBtN
 if ("geolocation" in navigator) {
   /* geolocation is available */
   navigator.geolocation.getCurrentPosition(function(pos) {
-    var latitude  = position.coords.latitude;
-    var longitude = position.coords.longitude;
+    var latitude  = pos.coords.latitude;
+    var longitude = pos.coords.longitude;
     console.log('lat:' + latitude);
     console.log('long:' + longitude);
     var map = L.mapbox.map('map', 'mapbox.streets')
