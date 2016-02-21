@@ -24,6 +24,19 @@ if ("geolocation" in navigator) {
     console.log('long:' + longitude);
     var map = L.mapbox.map('map', 'mapbox.streets')
       .setView([latitude, longitude], 13);
+    L.mapbox.featureLayer({
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [ longitude:, latitude ]
+      },
+      properties: {
+              title: 'Current Position'
+              'marker-size': 'large',
+              'marker-color': '#BE9A6B',
+              'marker-symbol': 'cafe'
+          }
+    }).addTo(map);
   }, function(err) {
     alert('Unable to tretrieve the position:' + err.message);
   });
