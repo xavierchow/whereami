@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset=utf-8 />
-<title>A simple map</title>
+<title>A simple map with your current position</title>
 <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 <script src='https://api.mapbox.com/mapbox.js/v2.3.0/mapbox.js'></script>
 <link href='https://api.mapbox.com/mapbox.js/v2.3.0/mapbox.css' rel='stylesheet' />
@@ -24,7 +24,7 @@ if ("geolocation" in navigator) {
     console.log('long:' + longitude);
     var map = L.mapbox.map('map', 'mapbox.streets')
       .setView([latitude, longitude], 13);
-    L.mapbox.featureLayer({
+    var marker = L.mapbox.featureLayer({
       type: 'Feature',
       geometry: {
         type: 'Point',
@@ -32,11 +32,15 @@ if ("geolocation" in navigator) {
       },
       properties: {
         title: 'Current Position',
+        description: longitude + ', ' + latitude,
         'marker-size': 'large',
         'marker-color': '#BE9A6B',
-        'marker-symbol': 'cafe'
+        'marker-symbol': 'star'
       }
     }).addTo(map);
+    marker.eachLayer(function(m) {
+      m.openPopup();
+    })
   }, function(err) {
     alert('Unable to tretrieve the position:' + err.message);
   });
@@ -44,7 +48,6 @@ if ("geolocation" in navigator) {
   /* geolocation IS NOT available */
   alert('Geolocation is not supported in your browser!')
 }
-
 </script>
 </body>
 </html>
