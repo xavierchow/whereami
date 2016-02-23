@@ -23,7 +23,7 @@ if ("geolocation" in navigator) {
     console.log('lat:' + latitude);
     console.log('long:' + longitude);
     var map = L.mapbox.map('map', 'mapbox.streets')
-      .setView([latitude, longitude], 13);
+      .setView([latitude, longitude], 15);
     var marker = L.mapbox.featureLayer({
       type: 'Feature',
       geometry: {
@@ -31,7 +31,7 @@ if ("geolocation" in navigator) {
         coordinates: [ longitude, latitude ]
       },
       properties: {
-        title: 'Current Position',
+        title: 'Current Position:',
         description: longitude + ', ' + latitude,
         'marker-size': 'large',
         'marker-color': '#BE9A6B',
