@@ -12,14 +12,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.1/mustache.min.js"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script id="template" type="x-tmpl-mustache">
   <div class="input-group">
     <input id="geo" readonly="readonly" class="form-control" value="{{position}}" aria-describedby="basic-addon">
     <span class="input-group-btn" id="basic-addon" data-clipboard-target="#geo">
-      <button class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Copied!" data-trigger="manual">
-        Copy
-      </button>
+      <button class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Copied!" data-trigger="manual">Copy</button>
     </span>
   </div>
 </script>
@@ -27,17 +25,31 @@
   body { margin:0; padding:0; }
   #map { position:absolute; top:0; bottom:0; width:100%; }
   #geo { width: 180px; }
-</style>
+  .loading {
+      display: block;
+      position: fixed;
+      z-index: 1000;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background: rgba( 255, 255, 255, .8 )
+                url('assets/loader.gif')
+                50% 50%
+                no-repeat;
+  }
 </style>
 </head>
 <body>
 <div id='map'></div>
 <a href="https://github.com/xavierchow/whereami"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+<div class='loading'></div>
 <script>
 L.mapbox.accessToken = 'pk.eyJ1IjoieGF2aWVyY2hvdyIsImEiOiJjaWtud2s2bWowdWtqdTBtNm4xZng0cDZuIn0.UCLsNC1_o_X2EjddumxZqg';
 if ("geolocation" in navigator) {
   /* geolocation is available */
   navigator.geolocation.getCurrentPosition(function(pos) {
+    $('.loading').addClass('hide');
     var latitude  = pos.coords.latitude.toFixed(6);
     var longitude = pos.coords.longitude.toFixed(6);
     var map = L.mapbox.map('map', 'mapbox.streets')
