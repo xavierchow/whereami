@@ -4,27 +4,19 @@
 <meta charset=utf-8 />
 <title>A simple map with your current position</title>
 <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-<script src='https://api.mapbox.com/mapbox.js/v2.3.0/mapbox.js'></script>
-<link href='https://api.mapbox.com/mapbox.js/v2.3.0/mapbox.css' rel='stylesheet' />
+<script src='https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.js'></script>
+<link href='https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.css' rel='stylesheet' />
 
 <script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.5/clipboard.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.1/mustache.min.js"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-<script id="template" type="x-tmpl-mustache">
-  <div class="input-group">
-    <input id="geo" readonly="readonly" class="form-control" value="{{position}}" aria-describedby="basic-addon">
-    <span class="input-group-btn" id="basic-addon" data-clipboard-target="#geo">
-      <button class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Copied!" data-trigger="manual">Copy</button>
-    </span>
-  </div>
-</script>
 <style>
   body { margin:0; padding:0; }
   #map { position:absolute; top:0; bottom:0; width:100%; }
   #geo { width: 180px; }
+  #dialog { display: none; }
   .loading {
       display: block;
       position: fixed;
@@ -42,54 +34,63 @@
 </head>
 <body>
 <div id='map'></div>
+<div id='dialog'>
+  <div class="input-group">
+    <input id="geo" readonly="readonly" class="form-control" value="" aria-describedby="basic-addon">
+    <span class="input-group-btn" id="basic-addon" data-clipboard-target="#geo">
+      <button class="btn btn-default" data-toggle="tooltip" data-placement="top" title="Copied!" data-trigger="manual">Copy</button>
+    </span>
+  </div>
+</div>
+
 <a href="https://github.com/xavierchow/whereami"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
 <div class='loading'></div>
 <script>
 L.mapbox.accessToken = 'pk.eyJ1IjoieGF2aWVyY2hvdyIsImEiOiJjaWtud2s2bWowdWtqdTBtNm4xZng0cDZuIn0.UCLsNC1_o_X2EjddumxZqg';
+var getCurPosSuccessHdlr = function(pos) {
+  $('.loading').addClass('hide');
+  var latitude  = pos.coords.latitude.toFixed(6);
+  var longitude = pos.coords.longitude.toFixed(6);
+  var map = L.mapbox.map('map', 'mapbox.streets')
+    .setView([latitude, longitude], 15);
+  var marker = L.marker([ latitude, longitude], {
+      icon: L.mapbox.marker.icon({
+        'marker-color': '#BE9A6B',
+        'marker-size': 'large',
+        'marker-symbol': 'star',
+      }),
+      draggable: true
+    }).addTo(map);
+
+  var clipboard = new Clipboard('.input-group-btn');
+  clipboard.on('success', function(e) {
+    e.clearSelection();
+  });
+  marker.bindPopup($('#dialog').html(),{
+      closeButton: false,
+      minWidth: 220
+  });
+  var showLatLng = function () {
+    marker.openPopup();
+    var m = marker.getLatLng();
+    $('#geo').val(m.lng.toFixed(6) + ', ' + m.lat.toFixed(6));
+  };
+  showLatLng();
+  marker.on('dragend', showLatLng);
+
+  $('.btn').click(function() {
+    $('.btn').tooltip('show');
+  })
+  $('.btn').mouseout(function() {
+    $('.btn').tooltip('hide');
+  })
+};
+var getCurPosFailHdlr = function(err) {
+    alert('Unable to tretrieve the position:' + err.message);
+};
 if ("geolocation" in navigator) {
   /* geolocation is available */
-  navigator.geolocation.getCurrentPosition(function(pos) {
-    $('.loading').addClass('hide');
-    var latitude  = pos.coords.latitude.toFixed(6);
-    var longitude = pos.coords.longitude.toFixed(6);
-    var map = L.mapbox.map('map', 'mapbox.streets')
-      .setView([latitude, longitude], 15);
-    var marker = L.mapbox.featureLayer({
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: [ longitude, latitude ]
-      },
-      properties: {
-        title: 'Current Position:',
-        description: longitude + ', ' + latitude,
-        'marker-size': 'large',
-        'marker-color': '#BE9A6B',
-        'marker-symbol': 'star'
-      }
-    }).addTo(map);
-    var clipboard = new Clipboard('.input-group-btn');
-    clipboard.on('success', function(e) {
-      e.clearSelection();
-    });
-    marker.eachLayer(function(m) {
-      var template = $('#template').html();
-      var popupContent = Mustache.render(template, { position: m.feature.properties.description });
-      m.bindPopup(popupContent,{
-          closeButton: false,
-          minWidth: 220
-      });
-      m.openPopup();
-      $('.btn').click(function() {
-        $('.btn').tooltip('show');
-      })
-      $('.btn').mouseout(function() {
-        $('.btn').tooltip('hide');
-      })
-    });
-  }, function(err) {
-    alert('Unable to tretrieve the position:' + err.message);
-  });
+  navigator.geolocation.getCurrentPosition(getCurPosSuccessHdlr, getCurPosFailHdlr);
 } else {
   /* geolocation IS NOT available */
   alert('Geolocation is not supported in your browser!')
